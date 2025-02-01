@@ -1,101 +1,166 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [selectedGroup, setSelectedGroup] = useState<string>("");
+  const [selectedMachine, setSelectedMachine] = useState<string>("");
+  const [weight, setWeight] = useState<string>("");
+  const [reps, setReps] = useState<string>("");
+  const [duration, setDuration] = useState<string>("");
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const isCardio = selectedGroup === "cardio";
+
+  type MachineGroups = {
+    [key: string]: string[];
+  };
+
+  const machines: MachineGroups = {
+    "upper-body": [
+      "Chest Press",
+      "Shoulder Press",
+      "Bicep Curl",
+      "Lat Pulldown",
+    ],
+    "lower-body": ["Leg Press", "Leg Extension", "Calf Raise", "Glute Machine"],
+    core: ["Ab Crunch", "Torso Rotation", "Hanging Leg Raise"],
+    cardio: ["Treadmill", "Elliptical", "Rowing Machine", "Stationary Bike"],
+  };
+  const muscleGroups = Object.keys(machines);
+
+  const handleSubmit = () => {
+    if (isCardio) {
+      console.log(`Workout Logged: ${selectedMachine} - ${duration} minutes`);
+    } else {
+      console.log(
+        `Workout Logged: ${selectedMachine} - ${weight} lbs for ${reps} reps`
+      );
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center p-4">
+      <h1 className="text-center text-xl font-bold">PFWorkout Helper</h1>
+      <p className="text-center max-w-md">
+        Track your workout progress by selecting a muscle group, choosing a
+        machine, and logging your sets.
+      </p>
+
+      {/* Muscle Group Selection */}
+      <div className="mt-4">
+        <Select
+          onValueChange={(value) => {
+            setSelectedGroup(value);
+            setSelectedMachine(""); // Reset machine selection when changing muscle group
+          }}
+        >
+          <SelectTrigger className="w-[300px]">
+            <SelectValue placeholder="Select Muscle Group" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Muscle Groups</SelectLabel>
+              {muscleGroups.map((group) => (
+                <SelectItem key={group} value={group}>
+                  {group
+                    .replace("-", " ")
+                    .replace(/\b\w/g, (c) => c.toUpperCase())}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Machine Selection (Appears after muscle group is selected) */}
+      {selectedGroup && (
+        <div className="mt-4">
+          <Select onValueChange={setSelectedMachine}>
+            <SelectTrigger className="w-[300px]">
+              <SelectValue placeholder="Select Machine" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Machines</SelectLabel>
+                {machines[selectedGroup]?.map((machine) => (
+                  <SelectItem key={machine} value={machine}>
+                    {machine}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+      )}
+
+      {/* Weight & Reps Input (Appears after machine is selected) */}
+      {/* Inputs for Strength Machines (Weight & Reps) */}
+      {selectedMachine && !isCardio && (
+        <div className="mt-4 flex flex-col gap-3">
+          <h2 className="text-lg font-semibold">{selectedMachine}</h2>
+
+          <p className="text-sm">Enter the weight for your set:</p>
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              placeholder="Weight (lbs)"
+              value={weight}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, "");
+                setWeight(value && parseInt(value) > 0 ? value : "");
+              }}
+              className="w-[150px] text-center"
+            />
+            <p>lbs</p>
+          </div>
+
+          <p className="text-sm">Enter the number of reps you completed:</p>
+          <Input
+            type="number"
+            placeholder="Reps"
+            value={reps}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, "");
+              setReps(value && parseInt(value) > 0 ? value : "");
+            }}
+            className="w-[200px] text-center"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        </div>
+      )}
+
+      {/* Input for Cardio Machines (Duration) */}
+      {selectedMachine && isCardio && (
+        <div className="mt-4 flex flex-col gap-3">
+          <h2 className="text-lg font-semibold">{selectedMachine}</h2>
+
+          <p className="text-sm">Enter the duration of your workout:</p>
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              placeholder="Minutes"
+              value={duration}
+              onChange={(e) => {
+                const value = e.target.value.replace(/\D/g, "");
+                setDuration(value && parseInt(value) > 0 ? value : "");
+              }}
+              className="w-[150px] text-center"
+            />
+            <p>mins</p>
+          </div>
+        </div>
+      )}
+
+      <Button onClick={handleSubmit}>Log Workout</Button>
     </div>
   );
 }
