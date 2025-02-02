@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "@/lib/firebaseConfig"; // Import the Firestore db instance
 
 export default function Home() {
   const [selectedGroup, setSelectedGroup] = useState<string>("");
@@ -38,19 +40,37 @@ export default function Home() {
   };
   const muscleGroups = Object.keys(machines);
 
-  const handleSubmit = () => {
-    if (isCardio) {
-      console.log(`Workout Logged: ${selectedMachine} - ${duration} minutes`);
-    } else {
-      console.log(
-        `Workout Logged: ${selectedMachine} - ${weight} lbs for ${reps} reps`
-      );
+  const handleSubmit = async () => {
+    if (
+      !selectedMachine ||
+      (isCardio && !duration) ||
+      (!isCardio && (!weight || !reps))
+    ) {
+      alert("Please complete all fields");
+      return;
+    }
+
+    const workoutData = {
+      muscleGroup: selectedGroup,
+      machine: selectedMachine,
+      weight: isCardio ? null : weight,
+      reps: isCardio ? null : reps,
+      duration: isCardio ? duration : null,
+      timestamp: new Date(),
+    };
+
+    try {
+      await addDoc(collection(db, "workoutLogs"), workoutData);
+      alert("Workout logged successfully!");
+    } catch (error) {
+      console.error("Error logging workout:", error);
+      alert("Failed to log workout.");
     }
   };
 
   return (
     <div className="flex flex-col items-center p-4">
-      <h1 className="text-center text-xl font-bold">PFWorkout Helper</h1>
+      <h1 className="text-center font-bold">PFWorkout Helper</h1>
       <p className="text-center max-w-md">
         Track your workout progress by selecting a muscle group, choosing a
         machine, and logging your sets.
@@ -160,7 +180,9 @@ export default function Home() {
         </div>
       )}
 
-      <Button onClick={handleSubmit}>Log Workout</Button>
+      <Button className="mt-5" onClick={handleSubmit}>
+        Log Workout
+      </Button>
     </div>
   );
 }
