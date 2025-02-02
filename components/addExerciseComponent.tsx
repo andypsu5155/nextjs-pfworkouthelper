@@ -15,7 +15,7 @@ import { getAuth } from "firebase/auth";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebaseConfig"; // Import the Firestore db instance
 
-export default function HomePageLoggedIn() {
+export default function AddExerciseComponent() {
   const [selectedGroup, setSelectedGroup] = useState<string>("");
   const [selectedMachine, setSelectedMachine] = useState<string>("");
   const [weight, setWeight] = useState<string>("");
