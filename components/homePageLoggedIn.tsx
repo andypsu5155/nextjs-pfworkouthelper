@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { getAuth } from "firebase/auth";
 import { collection, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebaseConfig"; // Import the Firestore db instance
 
@@ -41,6 +42,14 @@ export default function HomePageLoggedIn() {
   const muscleGroups = Object.keys(machines);
 
   const handleSubmit = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (!user) {
+      alert("You must be logged in to log workouts.");
+      return;
+    }
+
     if (
       !selectedMachine ||
       (isCardio && !duration) ||
@@ -60,7 +69,13 @@ export default function HomePageLoggedIn() {
     };
 
     try {
-      await addDoc(collection(db, "workoutLogs"), workoutData);
+      // Store in the user's personal workoutLogs collection
+      const userWorkoutCollection = collection(
+        db,
+        `workoutLogs/${user.uid}/logs`
+      );
+      await addDoc(userWorkoutCollection, workoutData);
+
       alert("Workout logged successfully!");
     } catch (error) {
       console.error("Error logging workout:", error);
